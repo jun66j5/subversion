@@ -64,7 +64,29 @@
         pass
       else:
         fn()
+
 %}
+#if SWIG_VERSION >= 0x040000
+%pythoncode %{
+  # SWIG 4+ supports only new-style classes since -classic option
+  # has been dropped, https://github.com/swig/swig/pull/1261
+  _newclass = 1
+  _set_instance_attr = _swig_setattr_nondynamic_instance_variable(object.__setattr__)
+  _swig_getattr = None
+%}
+#else
+%pythoncode %{
+  # SWIG classes generated with -classic do not define this variable,
+  # so set it to 0 when it doesn't exist
+  try:
+    _newclass
+  except NameError:
+    _newclass = 0
+
+  def _set_instance_attr(self, name, value):
+    return _swig_setattr(self, self.__class__, name, value)
+%}
+#endif
 
 /* Default code for all wrapped proxy classes in Python.
  * Inline the code from a separate file to avoid issues with

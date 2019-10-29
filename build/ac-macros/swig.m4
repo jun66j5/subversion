@@ -158,9 +158,9 @@ AC_DEFUN(SVN_FIND_SWIG,
           ])
 
           if test "$ac_cv_python_is_py3" = "yes"; then
-             SWIG_PY_OPTS="-python -py3"
+             SWIG_PY_OPTS="-python -nofastunpack -py3"
           else
-             SWIG_PY_OPTS="-python -classic"
+             SWIG_PY_OPTS="-python -nofastunpack -classic"
           fi
 
           dnl SWIG Python bindings successfully configured, clear the error message
