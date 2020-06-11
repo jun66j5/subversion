@@ -168,6 +168,12 @@ if test -z "$PYTHON"; then
   exit 1
 fi
 
+# Create some symbolic links which is needed to build SWIG Python 2 bindings.
+mkdir -p ./subversion/bindings/swig/python2/libsvn_swig_py
+ln -sf ../../python/libsvn_swig_py/swigutil_py.c ./subversion/bindings/swig/python2/libsvn_swig_py/
+ln -sf ../python/__init__.py ./subversion/bindings/swig/python2/
+ln -sf ../python/svn ./subversion/bindings/swig/python2/
+
 # Compile SWIG headers into standalone C files if we are in release mode
 if test -n "$RELEASE_MODE"; then
   echo "Generating SWIG code..."

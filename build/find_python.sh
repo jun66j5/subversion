@@ -21,11 +21,28 @@
 #
 
 # Required version of Python
-VERSION=${1:-0x2070000}
+case $1 in
+  -2)
+    CANDIDATE="$PYTHON $PYTHON2 python python2"
+    MIN_VER=${2:-0x2070000}
+    MAX_VER="0x3000000"
+    break
+    ;;
+  -3)
+    CANDIDATE="$PYTHON $PYTHON3 python python3"
+    MIN_VER=${2:-0x3000000}
+    MAX_VER="0xffffffff"
+    ;;
+  *)
+    CANDIDATE="$PYTHON $PYTHON3 python python3 $PYTHON2 python2"
+    MIN_VER=${1:-0x2070000}
+    MAX_VER="0xffffffff"
+esac
 
-for pypath in "$PYTHON" "$PYTHON2" "$PYTHON3" python python2 python3; do
+for pypath in $CANDIDATE; do
   if [ "x$pypath" != "x" ]; then
-    DETECT_PYTHON="import sys;sys.exit((sys.hexversion < $VERSION) and 1 or 0)"
+    DETECT_PYTHON="import sys;\
+                   sys.exit(0 if $MIN_VER <= sys.hexversion < $MAX_VER else 1)"
     if "$pypath" -c "$DETECT_PYTHON" >/dev/null 2>/dev/null; then
       echo $pypath
       exit 0

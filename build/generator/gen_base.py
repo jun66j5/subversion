@@ -530,18 +530,21 @@ class SWIGSource(SourceFile):
 
 lang_abbrev = {
   'python' : 'py',
+  'python2' : 'py2',
   'perl' : 'pl',
   'ruby' : 'rb',
   }
 
 lang_full_name = {
   'python' : 'Python',
+  'python2' : 'Python 2',
   'perl' : 'Perl',
   'ruby' : 'Ruby',
   }
 
 lang_utillib_suffix = {
   'python' : 'py',
+  'python2' : 'py2',
   'perl' : 'perl',
   'ruby' : 'ruby',
   }
@@ -814,7 +817,7 @@ class TargetSWIG(TargetLib):
     module_name = iname[:4] != 'svn_' and iname[:-2] or iname[4:-2]
 
     lib_extension = self.gen_obj._extension_map['lib', 'target']
-    if self.lang == "python":
+    if self.lang in ("python", "python2"):
       lib_extension = self.gen_obj._extension_map['pyd', 'target']
       lib_filename = '_' + module_name + lib_extension
     elif self.lang == "ruby":

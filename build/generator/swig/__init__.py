@@ -36,8 +36,8 @@ except ImportError:
 
 class Generator:
   """Base class for SWIG-related generators"""
-  langs = ["python", "perl", "ruby"]
-  short = { "perl": "pl", "python": "py", "ruby": "rb" }
+  langs = ["python", "python2", "perl", "ruby"]
+  short = { "perl": "pl", "python": "py", "python2": "py2", "ruby": "rb" }
 
   def __init__(self, conf, swig_path):
     """Read build.conf"""

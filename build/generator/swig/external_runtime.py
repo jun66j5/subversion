@@ -64,7 +64,7 @@ class Generator(generator.swig.Generator):
 
     # Runtime library names
     runtime_library = {
-      "python": "pyrun.swg", "perl":"perlrun.swg", "ruby":"rubydef.swg"
+      "python2": "pyrun.swg", "perl":"perlrun.swg", "ruby":"rubydef.swg"
     }
 
     # Build runtime files to temporary location
@@ -81,7 +81,10 @@ class Generator(generator.swig.Generator):
         out_file.write(open("%s/runtime.swg" % self.proxy_dir).read())
       out_file.close()
     else:
-      subprocess.check_call([self.swig_path, "-"+lang, "-external-runtime", out])
+      if lang == "python2":
+        subprocess.check_call([self.swig_path, "-python", "-external-runtime", out])
+      else:
+        subprocess.check_call([self.swig_path, "-"+lang, "-external-runtime", out])
 
     # SWIG 1.3.24-27 should include rubyhead.swg in their
     # external runtime, but they don't.
