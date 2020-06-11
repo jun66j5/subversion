@@ -10,7 +10,7 @@ See http://subversion.apache.org/docs/community-guide/releasing.html#release-sta
 for details on how release lines and voting work, what kinds of bugs can
 delay a release, etc.
 
-Status of 1.14.0:
+Status of 1.14.1:
 
 Candidate changes:
 ==================
@@ -21,36 +21,42 @@ Candidate changes:
      Make $EDITOR do the right thing on any backport branches we may create
      off this stabilization branch.
    Votes:
-     +1: danielsh
+     +1: danielsh, stsp
 
- * r1877072
-   svnmucc: Change an error message to state another possible cause of the
-   error.
+ * r1877960
+   * INSTALL (I.C.12): Add Note that non-release mode is required for building
+     SWIG Python 2 bindings.
    Justification:
-     Error messages should be accurate.  User reported (issue #4854).
+     We've not entirely dropped Python 2 bindings support on 1.14.x yet
    Votes:
-     +1: danielsh
+     +1: futatuki, stsp
 
-* r1877259
-    Move variable declarations to the start of block the to fix
-    syntax errors with VC9 (Visual Studio 2008).
-  Justification:
-    Our code should be C90.
-  Votes:
-    +1: brane
-    +0: danielsh (from dev@)
+ * r1876906
+   Make gen-make.py --debug work with Python 3
+   Justification:
+     We should also be able to build in Debug configuration with Python 3
+     on Windows.
+   Votes:
+     +1: jcorvel, stsp
+
+ * r1876662
+   Avoid check for SWIG version for Python bindings when --witout-swig is
+   passed.
+   Justification:
+     SWIG python bindings should be able to be built without SWIG when we use
+     the release tarball
+   Votes:
+     +1: futatuki, stsp
+
+ * r1878413
+   autogen.sh: Remove per SWIG bindings checked files on release mode.
+   Justification:
+     The release tarballs should not contain .swig_*_checked files
+   Votes:
+     +1: futatuki
 
 Veto-blocked changes:
 =====================
 
-Changes that are approved for 1.14.1:
-=====================================
-
- * r1877788
-   Fix a broken link in a docstring.
-   Votes:
-     +1: danielsh (after 1.14.0)
-
 Approved changes:
 =================
-
