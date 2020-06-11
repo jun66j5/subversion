@@ -1274,17 +1274,40 @@ AS_HELP_STRING([--enable-gprof],
 
 # Python: Used for testsuite, and bindings
 AC_ARG_VAR([PYTHON], [Python interpreter command])
+AC_ARG_VAR([PYTHON2], [target Python 2 interpreter, to build bindigs])
+AC_ARG_VAR([PYTHON3], [target Python 3 interpreter, to build bindigs])
 
 PYTHON="`$abs_srcdir/build/find_python.sh`"
 if test -z "$PYTHON"; then
   AC_MSG_WARN([Python 2.7 or later is required to run the testsuite])
-  AC_MSG_WARN([or to use the Subversion Python bindings])
   AC_MSG_WARN([])
   AC_MSG_WARN([If you have a suitable Python installed, but not on the])
   AC_MSG_WARN([PATH, set the environment variable PYTHON to the full path])
   AC_MSG_WARN([to the Python executable, and re-run configure])
 fi
 AC_PATH_PROGS(PYTHON, "$PYTHON", none)
+
+PYTHON2="`$abs_srcdir/build/find_python.sh -2`"
+if test -z "$PYTHON2"; then
+  AC_MSG_WARN([Python 2.7 or later in Python 2.x is required])
+  AC_MSG_WARN([to use the Subversion Python bindings for Python 2])
+  AC_MSG_WARN([])
+  AC_MSG_WARN([If you have a suitable Python installed, but not on the])
+  AC_MSG_WARN([PATH, set the environment variable PYTHON2 to the full path])
+  AC_MSG_WARN([to the Python executable, and re-run configure])
+fi
+AC_PATH_PROGS(PYTHON2, "$PYTHON2", none)
+
+PYTHON3="`$abs_srcdir/build/find_python.sh -3 0x3050000`"
+if test -z "$PYTHON3"; then
+  AC_MSG_WARN([Python 3.5 or later is required])
+  AC_MSG_WARN([to use the Subversion Python bindings for Python 3])
+  AC_MSG_WARN([])
+  AC_MSG_WARN([If you have a suitable Python installed, but not on the])
+  AC_MSG_WARN([PATH, set the environment variable PYTHON3 to the full path])
+  AC_MSG_WARN([to the Python executable, and re-run configure])
+fi
+AC_PATH_PROGS(PYTHON3, "$PYTHON3", none)
 
 # The minimum version for the JVM runtime for our Java bytecode.
 JAVA_OLDEST_WORKING_VER='1.8'
@@ -1346,6 +1369,7 @@ AC_ARG_VAR(SWIG_FEATURES, [SWIG feature flags common to all bindings])
 AC_ARG_VAR(SWIG_RB_FEATURES, [SWIG feature flags specific to Ruby bindings])
 AC_ARG_VAR(SWIG_PL_FEATURES, [SWIG feature flags specific to Perl bindings])
 AC_ARG_VAR(SWIG_PY_FEATURES, [SWIG feature flags specific to Python bindings])
+AC_ARG_VAR(SWIG_PY2_FEATURES, [SWIG feature flags specific to Python 2 bindings])
 
 SVN_CHECK_CTYPESGEN
 

@@ -21,7 +21,7 @@ dnl check to see if SWIG is current enough.
 dnl
 dnl if it is, then check to see if we have the correct version of python.
 dnl
-dnl if we do, then set up the appropriate SWIG_ variables to build the 
+dnl if we do, then set up the appropriate SWIG_ variables to build the
 dnl python bindings.
 
 AC_DEFUN(SVN_CHECK_SWIG,
@@ -69,7 +69,7 @@ AC_DEFUN(SVN_FIND_SWIG,
     fi
     if test ! -f "$SWIG" || test ! -x "$SWIG"; then
       AC_MSG_ERROR([Could not find swig binary at $SWIG])
-    fi 
+    fi
   fi
 
   if test "$SWIG" != "none"; then
@@ -78,7 +78,7 @@ AC_DEFUN(SVN_FIND_SWIG,
                        $SED -ne 's/^.*Version \(.*\)$/\1/p'`"
     # We want the version as an integer so we can test against
     # which version we're using.  SWIG doesn't provide this
-    # to us so we have to come up with it on our own. 
+    # to us so we have to come up with it on our own.
     # The major is passed straight through,
     # the minor is zero padded to two places,
     # and the patch level is zero padded to three places.
@@ -99,16 +99,16 @@ AC_DEFUN(SVN_FIND_SWIG,
       AC_MSG_WARN([Subversion requires SWIG >= 1.3.24])
     fi
   fi
- 
+
   SWIG_PY_COMPILE="none"
   SWIG_PY_LINK="none"
   SWIG_PY_OPTS="none"
   SWIG_PY_ERRMSG="check config.log for details"
-  if test "$PYTHON" != "none"; then
+  if test "$PYTHON3" != "none"; then
     AC_MSG_NOTICE([Configuring python swig binding])
 
     AC_CACHE_CHECK([for Python includes], [ac_cv_python_includes],[
-      ac_cv_python_includes="`$PYTHON ${abs_srcdir}/build/get-py-info.py --includes`"
+      ac_cv_python_includes="`$PYTHON3 ${abs_srcdir}/build/get-py-info.py --includes`"
     ])
     SWIG_PY_INCLUDES="\$(SWIG_INCLUDES) $ac_cv_python_includes"
 
@@ -137,52 +137,98 @@ AC_DEFUN(SVN_FIND_SWIG,
           AC_MSG_WARN([py3c library not found; disabling python swig bindings])
         else
           AC_CACHE_CHECK([for compiling Python extensions], [ac_cv_python_compile],[
-            ac_cv_python_compile="`$PYTHON ${abs_srcdir}/build/get-py-info.py --compile`"
+            ac_cv_python_compile="`$PYTHON3 ${abs_srcdir}/build/get-py-info.py --compile`"
           ])
           SWIG_PY_COMPILE="$ac_cv_python_compile $CFLAGS"
-      
+
           AC_CACHE_CHECK([for linking Python extensions], [ac_cv_python_link],[
-            ac_cv_python_link="`$PYTHON ${abs_srcdir}/build/get-py-info.py --link`"
+            ac_cv_python_link="`$PYTHON3 ${abs_srcdir}/build/get-py-info.py --link`"
           ])
           SWIG_PY_LINK="$ac_cv_python_link"
-      
+
           AC_CACHE_CHECK([for linking Python libraries], [ac_cv_python_libs],[
-            ac_cv_python_libs="`$PYTHON ${abs_srcdir}/build/get-py-info.py --libs`"
+            ac_cv_python_libs="`$PYTHON3 ${abs_srcdir}/build/get-py-info.py --libs`"
           ])
           SWIG_PY_LIBS="`SVN_REMOVE_STANDARD_LIB_DIRS($ac_cv_python_libs)`"
 
-          AC_CACHE_CHECK([for Python >= 3], [ac_cv_python_is_py3],[
-            ac_cv_python_is_py3="no"
-            $PYTHON -c 'import sys; sys.exit(0x3000000 > sys.hexversion)' && \
-               ac_cv_python_is_py3="yes"
-          ])
-
-          if test "$ac_cv_python_is_py3" = "yes"; then
-            if test "$SWIG_VERSION" -ge "300010"; then
-              dnl SWIG Python bindings successfully configured, clear the error message dnl
-              SWIG_PY_ERRMSG=""
-            else
-              SWIG_PY_ERRMSG="SWIG version is not suitable"
-              AC_MSG_WARN([Subversion Python bindings for Python 3 require SWIG 3.0.10 or newer])
-            fi
-            if test "$SWIG_VERSION" -lt "400000"; then
-              SWIG_PY_OPTS="-python -py3 -nofastunpack -modern"
-            else
-              SWIG_PY_OPTS="-python -py3 -nofastunpack"
-            fi
+          if test "$SWIG_VERSION" -ge "300010"; then
+            dnl SWIG Python bindings successfully configured, clear the error message dnl
+            SWIG_PY_ERRMSG=""
           else
-            if test "$SWIG_VERSION" -lt "400000"; then
-              SWIG_PY_OPTS="-python -classic"
-              dnl SWIG Python bindings successfully configured, clear the error message dnl
-              SWIG_PY_ERRMSG=""
-            else
-              SWIG_PY_OPTS="-python -nofastunpack"
-              SWIG_PY_ERRMSG="SWIG version is not suitable"
-              AC_MSG_WARN([Subversion Python bindings for Python 2 require 1.3.24 <= SWIG < 4.0.0])
-            fi
+            SWIG_PY_ERRMSG="SWIG version is not suitable"
+            AC_MSG_WARN([Subversion Python bindings for Python 3 require SWIG 3.0.10 or newer])
+          fi
+          if test "$SWIG_VERSION" -lt "400000"; then
+            SWIG_PY_OPTS="-modern"
+          else
+            SWIG_PY_OPTS=""
           fi
         fi
-            
+
+      fi
+    fi
+
+  fi
+
+  SWIG_PY2_COMPILE="none"
+  SWIG_PY2_LINK="none"
+  SWIG_PY2_ERRMSG="check config.log for details"
+  if test "$PYTHON2" != "none"; then
+    AC_MSG_NOTICE([Configuring python 2 swig binding])
+
+    AC_CACHE_CHECK([for Python 2 includes], [ac_cv_python2_includes],[
+      ac_cv_python2_includes="`$PYTHON2 ${abs_srcdir}/build/get-py-info.py --includes`"
+    ])
+    SWIG_PY2_INCLUDES="\$(SWIG_INCLUDES) $ac_cv_python2_includes"
+
+    if test "$ac_cv_python2_includes" = "none"; then
+      SWIG_PY2_ERRMSG="no distutils found"
+      AC_MSG_WARN([python 2 bindings cannot be built without distutils module])
+    else
+
+      python2_header_found="no"
+
+      save_cppflags="$CPPFLAGS"
+      CPPFLAGS="$CPPFLAGS $ac_cv_python2_includes"
+      AC_CHECK_HEADER(Python.h, [
+        python2_header_found="yes"
+      ])
+      CPPFLAGS="$save_cppflags"
+
+      if test "$python2_header_found" = "no"; then
+        SWIG_PY2_ERRMSG="no Python.h found"
+        AC_MSG_WARN([Python.h not found; disabling python 2 swig bindings])
+      else
+        SVN_PY3C()
+
+        if test "$py3c_found" = "no"; then
+          SWIG_PY_ERRMSG="py3c library not found"
+          AC_MSG_WARN([py3c library not found; disabling python swig bindings])
+        else
+          AC_CACHE_CHECK([for compiling Python 2 extensions], [ac_cv_python2_compile],[
+            ac_cv_python2_compile="`$PYTHON2 ${abs_srcdir}/build/get-py-info.py --compile`"
+          ])
+          SWIG_PY2_COMPILE="$ac_cv_python2_compile $CFLAGS"
+
+          AC_CACHE_CHECK([for linking Python 2 extensions], [ac_cv_python2_link],[
+            ac_cv_python2_link="`$PYTHON2 ${abs_srcdir}/build/get-py-info.py --link`"
+          ])
+          SWIG_PY2_LINK="$ac_cv_python2_link"
+
+          AC_CACHE_CHECK([for linking Python 2 libraries], [ac_cv_python2_libs],[
+            ac_cv_python2_libs="`$PYTHON2 ${abs_srcdir}/build/get-py-info.py --libs`"
+          ])
+          SWIG_PY2_LIBS="`SVN_REMOVE_STANDARD_LIB_DIRS($ac_cv_python2_libs)`"
+
+          if test "$SWIG_VERSION" -lt "400000"; then
+            dnl SWIG Python bindings successfully configured, clear the error message dnl
+            SWIG_PY2_ERRMSG=""
+          else
+            SWIG_PY2_ERRMSG="SWIG version is not suitable"
+            AC_MSG_WARN([Subversion Python bindings for Python 2 require 1.3.24 <= SWIG < 4.0.0])
+          fi
+        fi
+
       fi
     fi
 
@@ -338,6 +384,11 @@ int main()
   AC_SUBST(SWIG_PY_LIBS)
   AC_SUBST(SWIG_PY_OPTS)
   AC_SUBST(SWIG_PY_ERRMSG)
+  AC_SUBST(SWIG_PY2_INCLUDES)
+  AC_SUBST(SWIG_PY2_COMPILE)
+  AC_SUBST(SWIG_PY2_LINK)
+  AC_SUBST(SWIG_PY2_LIBS)
+  AC_SUBST(SWIG_PY2_ERRMSG)
   AC_SUBST(SWIG_PL_INCLUDES)
   AC_SUBST(SWIG_PL_LINK)
   AC_SUBST(SWIG_PL_ERRMSG)

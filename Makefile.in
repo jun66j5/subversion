@@ -85,12 +85,15 @@ svnxx_libdir = @libdir@
 
 # where to install libsvn_swig_*
 swig_py_libdir = @libdir@
+swig_py2_libdir = @libdir@
 swig_pl_libdir = @libdir@
 swig_rb_libdir = @libdir@
 
 ### these possibly need further discussion
 swig_pydir = @libdir@/svn-python/libsvn
+swig_py2dir = @libdir@/svn-python2/libsvn
 swig_pydir_extra = @libdir@/svn-python/svn
+swig_py2dir_extra = @libdir@/svn-python2/svn
 swig_pldir = @libdir@/svn-perl
 swig_rbdir = $(SWIG_RB_SITE_ARCH_DIR)/svn/ext
 toolsdir = @bindir@/svn-tools
@@ -149,10 +152,13 @@ BOOST_TEST_LDFLAGS = @BOOST_LDFLAGS@ @BOOST_UNIT_TEST_FRAMEWORK_LIB@
 
 SWIG = @SWIG@
 SWIG_PY_INCLUDES = @SWIG_PY_INCLUDES@ @SVN_PY3C_INCLUDES@ -I$(SWIG_SRC_DIR)/python/libsvn_swig_py
+SWIG_PY2_INCLUDES = @SWIG_PY2_INCLUDES@ @SVN_PY3C_INCLUDES@ -I$(SWIG_SRC_DIR)/python/libsvn_swig_py
 SWIG_PY_COMPILE = @SWIG_PY_COMPILE@
 SWIG_PY_LINK = @SWIG_PY_LINK@
 SWIG_PY_LIBS = @SWIG_PY_LIBS@
+SWIG_PY2_LIBS = @SWIG_PY2_LIBS@
 SWIG_PY_ERRMSG = @SWIG_PY_ERRMSG@
+SWIG_PY2_ERRMSG = @SWIG_PY2_ERRMSG@
 SWIG_PL_INCLUDES = @SWIG_PL_INCLUDES@
 SWIG_PL_ERRMSG = @SWIG_PL_ERRMSG@
 SWIG_RB_INCLUDES = @SWIG_RB_INCLUDES@ -I$(SWIG_SRC_DIR)/ruby/libsvn_swig_ruby
@@ -201,9 +207,11 @@ LDFLAGS = @LDFLAGS@ $(EXTRA_LDFLAGS)
 SWIG_LDFLAGS = @SWIG_LDFLAGS@ $(EXTRA_SWIG_LDFLAGS)
 SWIG_FEATURES = @SWIG_FEATURES@
 SWIG_PY_FEATURES = @SWIG_PY_FEATURES@
+SWIG_PY2_FEATURES = @SWIG_PY2_FEATURES@
 SWIG_PL_FEATURES = @SWIG_PL_FEATURES@
 SWIG_RB_FEATURES = @SWIG_RB_FEATURES@
 SWIG_PY_OPTS = @SWIG_PY_OPTS@
+SWIG_PY2_OPTS = -classic
 
 COMPILE = $(CC) $(CMODEFLAGS) $(CPPFLAGS) $(CMAINTAINERFLAGS) $(CFLAGS) $(INCLUDES)
 COMPILE_NOWARN = $(CC) $(CMODEFLAGS) $(CPPFLAGS) $(CNOWARNFLAGS) $(CFLAGS) $(INCLUDES)
@@ -222,6 +230,7 @@ COMPILE_SHARED_ONLY_CXX_LIB = $(LT_COMPILE_CXX) -o $@ -c -shared
 
 # special compilation for files destined for libsvn_swig_* (e.g. swigutil_*.c)
 COMPILE_SWIG_PY = $(LIBTOOL) $(LTFLAGS) --mode=compile $(SWIG_PY_COMPILE) $(CPPFLAGS) $(LT_CFLAGS) -DSWIGPYTHON $(SWIG_PY_INCLUDES) $(INCLUDES) -o $@ -c
+COMPILE_SWIG_PY2 = $(LIBTOOL) $(LTFLAGS) --mode=compile $(SWIG_PY_COMPILE) $(CPPFLAGS) $(LT_CFLAGS) -DSWIGPYTHON $(SWIG_PY2_INCLUDES) $(INCLUDES) -o $@ -c
 COMPILE_SWIG_PL = $(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) $(CPPFLAGS) $(CFLAGS) $(LT_CFLAGS) $(SWIG_PL_INCLUDES) $(INCLUDES) -o $@ -c
 COMPILE_SWIG_RB = $(LIBTOOL) $(LTFLAGS) --mode=compile $(SWIG_RB_COMPILE) $(CPPFLAGS) $(LT_CFLAGS) $(SWIG_RB_INCLUDES) $(INCLUDES) -o $@ -c
 
@@ -248,6 +257,17 @@ TEST_SHLIB_VAR_JAVAHL=\
 TEST_SHLIB_VAR_SWIG_PY=\
   if [ "@SVN_APR_SHLIB_PATH_VAR@" = "DYLD_LIBRARY_PATH" ]; then \
     for d in $(SWIG_PY_DIR)/libsvn_swig_py $(SWIG_PY_DIR)/../../../libsvn_*; do \
+      if [ -n "$$DYLD_LIBRARY_PATH" ]; then \
+        @SVN_APR_SHLIB_PATH_VAR@="$$@SVN_APR_SHLIB_PATH_VAR@:$$d/.libs"; \
+      else \
+        @SVN_APR_SHLIB_PATH_VAR@="$$d/.libs"; \
+      fi; \
+    done; \
+    export @SVN_APR_SHLIB_PATH_VAR@; \
+  fi;
+TEST_SHLIB_VAR_SWIG_PY2=\
+  if [ "@SVN_APR_SHLIB_PATH_VAR@" = "DYLD_LIBRARY_PATH" ]; then \
+    for d in $(SWIG_PY2_DIR)/libsvn_swig_py $(SWIG_PY2_DIR)/../../../libsvn_*; do \
       if [ -n "$$DYLD_LIBRARY_PATH" ]; then \
         @SVN_APR_SHLIB_PATH_VAR@="$$@SVN_APR_SHLIB_PATH_VAR@:$$d/.libs"; \
       else \
@@ -303,10 +323,12 @@ LINK_SHARED_ONLY_CXX_LIB = $(LINK_CXX_LIB) $(shared_only_LDFLAGS) -shared
 
 # Compilation of SWIG-generated C source code
 COMPILE_PY_WRAPPER = $(LIBTOOL) $(LTFLAGS) --mode=compile $(SWIG_PY_COMPILE) $(LT_CFLAGS) $(CPPFLAGS) $(SWIG_PY_INCLUDES) -prefer-pic -c -o $@
+COMPILE_PY2_WRAPPER = $(LIBTOOL) $(LTFLAGS) --mode=compile $(SWIG_PY_COMPILE) $(LT_CFLAGS) $(CPPFLAGS) $(SWIG_PY2_INCLUDES) -prefer-pic -c -o $@
 COMPILE_RB_WRAPPER = $(LIBTOOL) $(LTFLAGS) --mode=compile $(SWIG_RB_COMPILE) $(LT_CFLAGS) $(CPPFLAGS) $(SWIG_RB_INCLUDES) -prefer-pic -c -o $@
 
 # these commands link the wrapper objects into an extension library/module
 LINK_PY_WRAPPER = $(LIBTOOL) $(LTFLAGS) --mode=link $(SWIG_PY_LINK) $(SWIG_LDFLAGS) -rpath $(swig_pydir) -avoid-version -module
+LINK_PY2_WRAPPER = $(LIBTOOL) $(LTFLAGS) --mode=link $(SWIG_PY_LINK) $(SWIG_LDFLAGS) -rpath $(swig_py2dir) -avoid-version -module
 LINK_RB_WRAPPER = $(LIBTOOL) $(LTFLAGS) --mode=link $(SWIG_RB_LINK) $(SWIG_LDFLAGS) -rpath $(swig_rbdir) -avoid-version -module
 
 LINK_JAVAHL_CXX = $(LIBTOOL) $(LTCXXFLAGS) --mode=link $(CXX) $(LT_LDFLAGS) $(CXXFLAGS) $(LDFLAGS) $(LT_CXX_LIBADD) -rpath $(libdir)
@@ -334,7 +356,9 @@ INSTALL_SVNXX_LIB = $(INSTALL_LIB)
 
 ### this isn't correct yet
 INSTALL_SWIG_PY = $(INSTALL_LIB)
+INSTALL_SWIG_PY2 = $(INSTALL_LIB)
 INSTALL_SWIG_PY_LIB = $(INSTALL_LIB)
+INSTALL_SWIG_PY2_LIB = $(INSTALL_LIB)
 INSTALL_SWIG_PL_LIB = $(INSTALL_LIB)
 INSTALL_SWIG_RB = $(INSTALL_LIB)
 INSTALL_SWIG_RB_LIB = $(INSTALL_LIB)
@@ -356,20 +380,40 @@ INSTALL_EXTRA_SWIG_PY=\
       $(INSTALL_DATA) "$$i" $(DESTDIR)$(swig_pydir); \
     done; \
   fi; \
-  $(PYTHON) -c 'import compileall; \
+  $(PYTHON3) -c 'import compileall; \
     compileall.compile_dir("$(DESTDIR)$(swig_pydir)", 1, "$(swig_pydir)"); \
     compileall.compile_dir("$(DESTDIR)$(swig_pydir_extra)", 1, \
     "$(swig_pydir_extra)");'
+INSTALL_EXTRA_SWIG_PY2=\
+  $(MKDIR) $(DESTDIR)$(swig_py2dir); \
+  $(MKDIR) $(DESTDIR)$(swig_py2dir_extra); \
+  for i in $(abs_srcdir)/subversion/bindings/swig/python2/svn/*.py; do \
+    $(INSTALL_DATA) "$$i" $(DESTDIR)$(swig_py2dir_extra); \
+  done; \
+  for i in $(abs_srcdir)/subversion/bindings/swig/python2/*.py; do \
+    $(INSTALL_DATA) "$$i" $(DESTDIR)$(swig_py2dir); \
+  done; \
+  if test "$(abs_srcdir)" != "$(abs_builddir)"; then \
+    for i in $(abs_builddir)/subversion/bindings/swig/python2/*.py; do \
+      $(INSTALL_DATA) "$$i" $(DESTDIR)$(swig_py2dir); \
+    done; \
+  fi; \
+  $(PYTHON2) -c 'import compileall; \
+    compileall.compile_dir("$(DESTDIR)$(swig_py2dir)", 1, "$(swig_py2dir)"); \
+    compileall.compile_dir("$(DESTDIR)$(swig_py2dir_extra)", 1, \
+    "$(swig_py2dir_extra)");'
 
 # The path to generated and complementary source files for the SWIG
 # bindings.
 SWIG_PL_DIR = $(abs_builddir)/subversion/bindings/swig/perl
 SWIG_PY_DIR = $(abs_builddir)/subversion/bindings/swig/python
+SWIG_PY2_DIR = $(abs_builddir)/subversion/bindings/swig/python2
 SWIG_RB_DIR = $(abs_builddir)/subversion/bindings/swig/ruby
 
 # The path to the source files for the SWIG bindings
 SWIG_PL_SRC_DIR = $(abs_srcdir)/subversion/bindings/swig/perl
 SWIG_PY_SRC_DIR = $(abs_srcdir)/subversion/bindings/swig/python
+SWIG_PY2_SRC_DIR = $(abs_srcdir)/subversion/bindings/swig/python2
 SWIG_RB_SRC_DIR = $(abs_srcdir)/subversion/bindings/swig/ruby
 
 ### Automate JAR creation using Makefile generator's javahl-java.jar
@@ -396,6 +440,8 @@ HTTPD_VERSION = @HTTPD_VERSION@
 HTTPD_WHITELIST = @HTTPD_WHITELIST@
 
 PYTHON = @PYTHON@
+PYTHON2 = @PYTHON2@
+PYTHON3 = @PYTHON3@
 PERL = @PERL@
 
 JDK = @JDK@
@@ -456,6 +502,7 @@ fast-clean: doc-clean
         done
 	echo $(CLEAN_FILES) | xargs rm -f --
 	find $(CTYPES_PYTHON_SRC_DIR) $(SWIG_PY_SRC_DIR) $(SWIG_PY_DIR) \
+		$(SWIG_PY2_SRC_DIR) $(SWIG_PY2_DIR) \
 		$(abs_srcdir)/build $(top_srcdir)/subversion/tests/cmdline/svntest \
 		-name "*.pyc" -exec rm {} ';'
 
@@ -855,16 +902,18 @@ install-man:
         done
 
 install-swig-py: install-swig-py-lib
+install-swig-py2: install-swig-py2-lib
 install-swig-rb: install-swig-rb-lib
 
 clean-bindings: clean-swig clean-ctypes-python clean-javahl
 
 extraclean-bindings: clean-swig extraclean-swig-headers \
-			extraclean-swig-py extraclean-swig-rb \
-			extraclean-swig-pl \
+			extraclean-swig-py extraclean-swig-py2 \
+			extraclean-swig-rb extraclean-swig-pl \
 			clean-ctypes-python clean-javahl \
 
-clean-swig: clean-swig-headers clean-swig-py clean-swig-rb clean-swig-pl
+clean-swig: clean-swig-headers clean-swig-py clean-swig-py2 clean-swig-rb \
+		clean-swig-pl
 	@rm -f .swig_checked
 
 EXTRACLEAN_SWIG_HEADERS=rm -f $(SWIG_SRC_DIR)/proxy/*.swg
@@ -931,6 +980,9 @@ extraclean-swig-pl: clean-swig-pl
 $(SWIG_PY_DIR)/libsvn:
 	mkdir $(SWIG_PY_DIR)/libsvn
 
+$(SWIG_PY2_DIR)/libsvn:
+	mkdir $(SWIG_PY2_DIR)/libsvn
+
 copy-swig-py: autogen-swig-py $(SWIG_PY_DIR)/libsvn
 	@for f in $(SWIG_PY_SRC_DIR)/*.py $(SWIG_PY_DIR)/*.py; do \
 	  ! [ -f "$$f" ] || cp -pf $$f $(SWIG_PY_DIR)/libsvn; \
@@ -938,15 +990,31 @@ copy-swig-py: autogen-swig-py $(SWIG_PY_DIR)/libsvn
 	@cd $(SWIG_PY_DIR)/libsvn;ln -sf ../.libs/*.so .
 	@touch $(SWIG_PY_DIR)/libsvn/__init__.py
 
+copy-swig-py2: autogen-swig-py2 $(SWIG_PY2_DIR)/libsvn
+	@for f in $(SWIG_PY2_SRC_DIR)/*.py $(SWIG_PY2_DIR)/*.py; do \
+	  ! [ -f "$$f" ] || cp -pf $$f $(SWIG_PY2_DIR)/libsvn; \
+	done
+	@cd $(SWIG_PY2_DIR)/libsvn;ln -sf ../.libs/*.so .
+	@touch $(SWIG_PY2_DIR)/libsvn/__init__.py
+
 swig-py: autogen-swig-py copy-swig-py
+
+swig-py2: autogen-swig-py2 copy-swig-py2
 
 check-swig-py: swig-py
 	$(TEST_SHLIB_VAR_SWIG_PY) \
 	cd $(SWIG_PY_DIR); \
-	  $(PYTHON) $(SWIG_PY_SRC_DIR)/tests/run_all.py
+	  $(PYTHON3) $(SWIG_PY_SRC_DIR)/tests/run_all.py
+
+check-swig-py2: swig-py2
+	$(TEST_SHLIB_VAR_SWIG_PY2) \
+	cd $(SWIG_PY2_DIR); \
+	  $(PYTHON2) $(SWIG_PY_SRC_DIR)/tests/run_all.py
 
 EXTRACLEAN_SWIG_PY=rm -rf $(SWIG_PY_DIR)/svn_*.c $(SWIG_PY_DIR)/core.c \
                           $(SWIG_PY_DIR)/[a-z]*.py
+EXTRACLEAN_SWIG_PY2=rm -rf $(SWIG_PY2_DIR)/svn_*.c $(SWIG_PY2_DIR)/core.c \
+                          $(SWIG_PY2_DIR)/[a-z]*.py
 clean-swig-py:
 	rm -f .swig_py_checked
 	rm -rf $(SWIG_PY_DIR)/libsvn
@@ -959,8 +1027,23 @@ clean-swig-py:
 	done
 	find $(SWIG_PY_SRC_DIR) $(SWIG_PY_DIR) -name "*.pyc" -exec rm {} ';'
 
+clean-swig-py2:
+	rm -f .swig_py2_checked
+	rm -rf $(SWIG_PY2_DIR)/libsvn
+	if test -z "$(RELEASE_MODE)"; then \
+	  $(EXTRACLEAN_SWIG_PY2); \
+	fi
+	for d in $(SWIG_PY2_DIR) $(SWIG_PY2_DIR)/libsvn_swig_py; \
+	do \
+	  [ -d $$d ] && cd $$d && rm -rf *.lo *.la *.o *.pyc .libs || true; \
+	done
+	find $(SWIG_PY2_SRC_DIR) $(SWIG_PY2_DIR) -name "*.pyc" -exec rm {} ';'
+
 extraclean-swig-py: clean-swig-py
 	$(EXTRACLEAN_SWIG_PY)
+
+extraclean-swig-py2: clean-swig-py2
+	$(EXTRACLEAN_SWIG_PY2)
 
 swig-rb: autogen-swig-rb
 
