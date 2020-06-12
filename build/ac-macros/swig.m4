@@ -104,6 +104,7 @@ AC_DEFUN(SVN_FIND_SWIG,
   SWIG_PY_LINK="none"
   SWIG_PY_OPTS="none"
   SWIG_PY_ERRMSG="check config.log for details"
+  PY3C_CHECKED="no"
   if test "$PYTHON3" != "none"; then
     AC_MSG_NOTICE([Configuring python swig binding])
 
@@ -131,6 +132,7 @@ AC_DEFUN(SVN_FIND_SWIG,
         AC_MSG_WARN([Python.h not found; disabling python swig bindings])
       else
         SVN_PY3C()
+        PY3C_CHECKED="yes"
 
         if test "$py3c_found" = "no"; then
           SWIG_PY_ERRMSG="py3c library not found"
@@ -199,7 +201,9 @@ AC_DEFUN(SVN_FIND_SWIG,
         SWIG_PY2_ERRMSG="no Python.h found"
         AC_MSG_WARN([Python.h not found; disabling python 2 swig bindings])
       else
-        SVN_PY3C()
+        if test "$(PY3C_CHECKED)" = "no"; then
+          SVN_PY3C()
+        fi
 
         if test "$py3c_found" = "no"; then
           SWIG_PY_ERRMSG="py3c library not found"
