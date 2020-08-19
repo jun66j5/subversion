@@ -154,7 +154,9 @@ SWIG = @SWIG@
 SWIG_PY_INCLUDES = @SWIG_PY_INCLUDES@ @SVN_PY3C_INCLUDES@ -I$(SWIG_SRC_DIR)/python/libsvn_swig_py
 SWIG_PY2_INCLUDES = @SWIG_PY2_INCLUDES@ @SVN_PY3C_INCLUDES@ -I$(SWIG_SRC_DIR)/python/libsvn_swig_py
 SWIG_PY_COMPILE = @SWIG_PY_COMPILE@
+SWIG_PY2_COMPILE = @SWIG_PY2_COMPILE@
 SWIG_PY_LINK = @SWIG_PY_LINK@
+SWIG_PY2_LINK = @SWIG_PY2_LINK@
 SWIG_PY_LIBS = @SWIG_PY_LIBS@
 SWIG_PY2_LIBS = @SWIG_PY2_LIBS@
 SWIG_PY_ERRMSG = @SWIG_PY_ERRMSG@
@@ -230,7 +232,7 @@ COMPILE_SHARED_ONLY_CXX_LIB = $(LT_COMPILE_CXX) -o $@ -c -shared
 
 # special compilation for files destined for libsvn_swig_* (e.g. swigutil_*.c)
 COMPILE_SWIG_PY = $(LIBTOOL) $(LTFLAGS) --mode=compile $(SWIG_PY_COMPILE) $(CPPFLAGS) $(LT_CFLAGS) -DSWIGPYTHON $(SWIG_PY_INCLUDES) $(INCLUDES) -o $@ -c
-COMPILE_SWIG_PY2 = $(LIBTOOL) $(LTFLAGS) --mode=compile $(SWIG_PY_COMPILE) $(CPPFLAGS) $(LT_CFLAGS) -DSWIGPYTHON $(SWIG_PY2_INCLUDES) $(INCLUDES) -o $@ -c
+COMPILE_SWIG_PY2 = $(LIBTOOL) $(LTFLAGS) --mode=compile $(SWIG_PY2_COMPILE) $(CPPFLAGS) $(LT_CFLAGS) -DSWIGPYTHON $(SWIG_PY2_INCLUDES) $(INCLUDES) -o $@ -c
 COMPILE_SWIG_PL = $(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) $(CPPFLAGS) $(CFLAGS) $(LT_CFLAGS) $(SWIG_PL_INCLUDES) $(INCLUDES) -o $@ -c
 COMPILE_SWIG_RB = $(LIBTOOL) $(LTFLAGS) --mode=compile $(SWIG_RB_COMPILE) $(CPPFLAGS) $(LT_CFLAGS) $(SWIG_RB_INCLUDES) $(INCLUDES) -o $@ -c
 
@@ -323,12 +325,12 @@ LINK_SHARED_ONLY_CXX_LIB = $(LINK_CXX_LIB) $(shared_only_LDFLAGS) -shared
 
 # Compilation of SWIG-generated C source code
 COMPILE_PY_WRAPPER = $(LIBTOOL) $(LTFLAGS) --mode=compile $(SWIG_PY_COMPILE) $(LT_CFLAGS) $(CPPFLAGS) $(SWIG_PY_INCLUDES) -prefer-pic -c -o $@
-COMPILE_PY2_WRAPPER = $(LIBTOOL) $(LTFLAGS) --mode=compile $(SWIG_PY_COMPILE) $(LT_CFLAGS) $(CPPFLAGS) $(SWIG_PY2_INCLUDES) -prefer-pic -c -o $@
+COMPILE_PY2_WRAPPER = $(LIBTOOL) $(LTFLAGS) --mode=compile $(SWIG_PY2_COMPILE) $(LT_CFLAGS) $(CPPFLAGS) $(SWIG_PY2_INCLUDES) -prefer-pic -c -o $@
 COMPILE_RB_WRAPPER = $(LIBTOOL) $(LTFLAGS) --mode=compile $(SWIG_RB_COMPILE) $(LT_CFLAGS) $(CPPFLAGS) $(SWIG_RB_INCLUDES) -prefer-pic -c -o $@
 
 # these commands link the wrapper objects into an extension library/module
 LINK_PY_WRAPPER = $(LIBTOOL) $(LTFLAGS) --mode=link $(SWIG_PY_LINK) $(SWIG_LDFLAGS) -rpath $(swig_pydir) -avoid-version -module
-LINK_PY2_WRAPPER = $(LIBTOOL) $(LTFLAGS) --mode=link $(SWIG_PY_LINK) $(SWIG_LDFLAGS) -rpath $(swig_py2dir) -avoid-version -module
+LINK_PY2_WRAPPER = $(LIBTOOL) $(LTFLAGS) --mode=link $(SWIG_PY2_LINK) $(SWIG_LDFLAGS) -rpath $(swig_py2dir) -avoid-version -module
 LINK_RB_WRAPPER = $(LIBTOOL) $(LTFLAGS) --mode=link $(SWIG_RB_LINK) $(SWIG_LDFLAGS) -rpath $(swig_rbdir) -avoid-version -module
 
 LINK_JAVAHL_CXX = $(LIBTOOL) $(LTCXXFLAGS) --mode=link $(CXX) $(LT_LDFLAGS) $(CXXFLAGS) $(LDFLAGS) $(LT_CXX_LIBADD) -rpath $(libdir)
