@@ -15,50 +15,32 @@ Status of 1.14.1:
 Candidate changes:
 ==================
 
- * r1876410
-   Fix the .editorconfig stanza for Makefile's.
+ * r1878997, r1879192, r1879474, r1879959
+   Fix issue #4859, Merge removing a folder with non-inheritable mergeinfo
+   -> E155023: can't set properties: invalid status for updating properties
    Justification:
-     Make $EDITOR do the right thing on any backport branches we may create
-     off this stabilization branch.
+     Annoying failure, encountered in real use.
    Votes:
-     +1: danielsh, stsp
+     +1: julianfoad, hartmannathan
 
- * r1878413
-   autogen.sh: Remove per SWIG bindings checked files on release mode.
+ * r1880192
+   Fix issue #4862 "Merge: the resulting mergeinfo is non-deterministic".
    Justification:
-     The release tarballs should not contain .swig_*_checked files
+     Non-deterministic merge result is bad.
+   Depends:
+     r1878997, r1879192, r1879474, r1879959 (Fix issue #4859)
    Votes:
-     +1: futatuki, rhuijben
+     +1: julianfoad, hartmannathan
 
- * r1878909, r1878918, r1878950
-   Fix a number of thinkos in human-readable file size formatting.
+ * r1878855, r1878859
+   Make the hot-backup.py script work with Python 3.
    Justification:
-     Fixes wrong output and an assertion failure in debug mode.
+     Script should work with Python3
    Votes:
-     +1: brane, rhuijben
-
- * r1879198
-   Fix an invalid quoting in working copy upgrade system that only works
-   because SQLite automatically fixed this. More recent SQLite functions
-   will signal an error when deprecated features are disabled.
-   Justification:
-     Causes user-visible errors.
-   Note:
-     This filechange by itself doesn't trigger a change that make will
-     handle. So make sure you recompile the sql queries for testing.
-   Votes:
-     +1: rhuijben, danielsh
+     +1: jamessan
 
 Veto-blocked changes:
 =====================
 
 Approved changes:
 =================
-
- * r1877960
-   * INSTALL (I.C.12): Add Note that non-release mode is required for building
-     SWIG Python 2 bindings.
-   Justification:
-     We've not entirely dropped Python 2 bindings support on 1.14.x yet
-   Votes:
-     +1: futatuki, stsp, rhuijben
