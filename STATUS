@@ -39,6 +39,47 @@ Candidate changes:
    Votes:
      +1: jamessan
 
+ * r1881534
+   Fix issue #4864 "build/ac-macros/macosx.m4: workaround AC_RUN_IFELSE"
+   Justification:
+     Unblocks cross-compiling SVN.
+   Votes:
+     +1: hartmannathan
+
+ * r1881958, 1882128
+   Restoring support for building with APR 1.4.
+   Justification:
+     Allow building on older distros such as CentOS 7.
+   Votes:
+     +1: brane
+     +1: julianfoad (only r1881958)
+
+ * r1881985, r1882105
+   Follow up to r1880192: Fix an EOL issue in test on Windows.
+   Justification:
+     We should test correctly on Windows environment, too.
+   Depends:
+     rr1880192
+   Votes:
+     +1: futatuki
+
+ * r1882157
+   Do not suggest --help -v for commands which do not support -v.
+   Justification:
+     The --help message for several commands is misleading. User complained.
+   Votes:
+     +1: stsp
+
+ * r1882326
+   Fix issue #4762 "authz doesn't combine global and repository rules"
+   Justification:
+     Restore behaviour of SVN 1.9: It is now again possible to override
+     per-path access rules for specific users (and groups) at the global
+     level. Such global rules are overridden by repository-specific rules
+     only if both the user and the path match the repository-specific rule.
+   Votes:
+     +1: stsp
+   
 Veto-blocked changes:
 =====================
 
