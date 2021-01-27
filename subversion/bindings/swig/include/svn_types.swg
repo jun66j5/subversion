@@ -618,16 +618,30 @@ svn_ ## TYPE ## _swig_rb_closed(VALUE self)
 }
 
 %typemap(in, noblock=1) apr_pool_t * {
-  /* Verify that the user supplied a valid pool */
-  if ($input != Py_None && $input != _global_py_pool) {
-    SWIG_Python_TypeError(SWIG_TypePrettyName($descriptor), $input);
-    SWIG_arg_fail($svn_argnum);
-    SWIG_fail;
-  }
+  if ($input != Py_None && $input != _global_py_pool)
+    {
+      $1_type ptr;
+      if (svn_swig_py_convert_ptr($input, (void **)&ptr, $descriptor) != 0)
+        {
+          if (!PyErr_Occurred())
+            {
+              SWIG_Python_TypeError(SWIG_TypePrettyName($descriptor), $input);
+              SWIG_arg_fail($svn_argnum);
+            }
+          SWIG_fail;
+        }
+      $1 = ptr;
+    }
 }
 
 %typemap(freearg) apr_pool_t * {
-  Py_XDECREF(_global_py_pool);
+  /* Decrement the reference count only once */
+  if (_global_py_pool != NULL)
+    {
+      Py_XDECREF(_global_py_pool);
+      _global_py_pool = NULL;
+      _global_pool = NULL;
+    }
 }
 #endif
 

@@ -196,30 +196,28 @@ FILE *svn_swig_py_as_file(PyObject *pyfile)
 int svn_swig_py_get_pool_arg(PyObject *args, swig_type_info *type,
     PyObject **py_pool, apr_pool_t **pool)
 {
-  int argnum = PyTuple_GET_SIZE(args) - 1;
+  int size = PyTuple_GET_SIZE(args);
+  int i;
 
-  if (argnum >= 0)
+  /* Use the first pool argument in "args" */
+  for (i = 0; i < size; i++)
     {
-      PyObject *input = PyTuple_GET_ITEM(args, argnum);
+      PyObject *input = PyTuple_GET_ITEM(args, i);
       if (input != Py_None)
         {
           PyObject *fn;
           if (NULL != (fn = PyObject_GetAttrString(input, markValid)))
             {
               Py_DECREF(fn);
-
-              *pool = svn_swig_py_must_get_ptr(input, type, argnum+1);
-              if (*pool == NULL)
-                return 1;
-              *py_pool = input;
-              Py_INCREF(input);
-              return 0;
+              if (svn_swig_py_convert_ptr(input, (void **)pool, type) == 0)
+                {
+                  *py_pool = input;
+                  Py_INCREF(input);
+                  return 0;
+                }
             }
-          else
-            {
-              /* Clear any getattr() error, it isn't needed. */
-              PyErr_Clear();
-            }
+          /* Clear any error, it isn't needed. */
+          PyErr_Clear();
         }
     }
 
