@@ -164,9 +164,9 @@ AC_DEFUN(SVN_FIND_SWIG,
               AC_MSG_WARN([Subversion Python bindings for Python 3 require SWIG 3.0.10 or newer])
             fi
             if test "$SWIG_VERSION" -lt "400000"; then
-              SWIG_PY_OPTS="-modern"
+              SWIG_PY_OPTS="-python -py3 -nofastunpack -modern"
             else
-              SWIG_PY_OPTS=""
+              SWIG_PY_OPTS="-python -py3 -nofastunpack"
             fi
           fi
         fi

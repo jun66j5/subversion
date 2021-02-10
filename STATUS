@@ -15,73 +15,54 @@ Status of 1.14.1:
 Candidate changes:
 ==================
 
- * r1878997, r1879192, r1879474, r1879959
-   Fix issue #4859, Merge removing a folder with non-inheritable mergeinfo
-   -> E155023: can't set properties: invalid status for updating properties
+ * r1877310
+   Add a test for issue #4711 "invalid xml file produced by svn log --xml
+   --verbose --use-merge-history --search".
    Justification:
-     Annoying failure, encountered in real use.
+     Increase test coverage.
    Votes:
-     +1: julianfoad, hartmannathan
+     +0: danielsh (with appropriate Skip()/XFail() annotations if needed)
 
- * r1880192
-   Fix issue #4862 "Merge: the resulting mergeinfo is non-deterministic".
+ * r1883355
+   Use the APR-1.4+ API for flushing file contents to disk.
    Justification:
-     Non-deterministic merge result is bad.
-   Depends:
-     r1878997, r1879192, r1879474, r1879959 (Fix issue #4859)
+     Reduce code duplication between APR and SVN.
    Votes:
-     +1: julianfoad, hartmannathan
+     +1: brane
 
- * r1878855, r1878859
-   Make the hot-backup.py script work with Python 3.
+ * r1878379, r1883719, r1883722, r1884610
+   Distinguish configure scripts on release mode and non release mode.
    Justification:
-     Script should work with Python3
+     Building process should not be prevented by swig installed in users'
+     environment when users use release tar balls.
    Votes:
-     +1: jamessan
+     +1: futatuki, stsp
 
- * r1881534
+ * r1881534 (without CRLF problem)
    Fix issue #4864 "build/ac-macros/macosx.m4: workaround AC_RUN_IFELSE"
    Justification:
      Unblocks cross-compiling SVN.
+   Notes:
+     Replacement for veto-blocked r1881534 group (see below) without the
+     inconsistent line endings that instigated said veto blockage.
+   Branch:
+     1.14.x-r1881534-no-crlf
    Votes:
-     +1: hartmannathan
+     +1: hartmannathan, stsp
 
- * r1881958, 1882128
-   Restoring support for building with APR 1.4.
-   Justification:
-     Allow building on older distros such as CentOS 7.
-   Votes:
-     +1: brane
-     +1: julianfoad (only r1881958)
-
- * r1881985, r1882105
-   Follow up to r1880192: Fix an EOL issue in test on Windows.
-   Justification:
-     We should test correctly on Windows environment, too.
-   Depends:
-     rr1880192
-   Votes:
-     +1: futatuki
-
- * r1882157
-   Do not suggest --help -v for commands which do not support -v.
-   Justification:
-     The --help message for several commands is misleading. User complained.
-   Votes:
-     +1: stsp
-
- * r1882326
-   Fix issue #4762 "authz doesn't combine global and repository rules"
-   Justification:
-     Restore behaviour of SVN 1.9: It is now again possible to override
-     per-path access rules for specific users (and groups) at the global
-     level. Such global rules are overridden by repository-specific rules
-     only if both the user and the path match the repository-specific rule.
-   Votes:
-     +1: stsp
-   
 Veto-blocked changes:
 =====================
+
+ * r1881534, r1883388
+   Fix issue #4864 "build/ac-macros/macosx.m4: workaround AC_RUN_IFELSE"
+   Justification:
+     Unblocks cross-compiling SVN.
+   Notes:
+     Replacement nomination above (the 1.14.x-r1881534-no-crlf branch)
+   Votes:
+     +1: hartmannathan
+     -1: brane (contains CRLF line endings, needs svn:eol-style + fixup)
+               (+1 once that is fixed)
 
 Approved changes:
 =================

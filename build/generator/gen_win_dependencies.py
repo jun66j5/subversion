@@ -345,7 +345,7 @@ class GenDependenciesBase(gen_base.GeneratorBase):
   def _find_apr(self):
     "Find the APR library and version"
 
-    minimal_apr_version = (1, 5, 0)
+    minimal_apr_version = (1, 4, 0)
 
     if not self.apr_path:
       sys.stderr.write("ERROR: Use '--with-apr' option to configure APR " + \
@@ -1038,10 +1038,22 @@ class GenDependenciesBase(gen_base.GeneratorBase):
       return
 
     if sys.version_info[0] >= 3:
-      self.user_macros.append(UserMacro("SWIG_PY_OPTS", "-python -py3"))
+      if self.swig_version < (3, 0, 10):
+        if show_warnings:
+          print("WARNING: Subversion Python bindings for Python 3 require SWIG 3.0.10 or newer")
+        return
+      if self.swig_version < (4, 0, 0):
+        opts = "-python -py3 -nofastunpack -modern"
+      else:
+        opts = "-python -py3 -nofastunpack"
     else:
-      self.user_macros.append(UserMacro("SWIG_PY_OPTS", "-python -classic"))
+      if not ((1, 3, 24) <= self.swig_version < (4, 0, 0)):
+        if show_warnings:
+          print("WARNING: Subversion Python bindings for Python 2 require 1.3.24 <= SWIG < 4.0.0")
+        return
+      opts = "-python -classic"
 
+    self.user_macros.append(UserMacro("SWIG_PY_OPTS", opts))
     self._libraries['python'] = SVNCommonLibrary('python', inc_dir, lib_dir, None,
                                                  sys.version.split(' ')[0])
 
