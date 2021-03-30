@@ -1790,17 +1790,39 @@ typedef struct item_baton {
   apr_pool_t *pool;     /* top-level pool */
 } item_baton;
 
+static apr_status_t svn_swig_cleanup_item_baton(void *data)
+{
+  item_baton *baton = data;
+  svn_swig_py_acquire_py_lock();
+  Py_XDECREF(baton->editor);
+  Py_XDECREF(baton->baton);
+  svn_swig_py_release_py_lock();
+#ifdef SVN_DEBUG
+  baton->editor = baton->baton = NULL;
+#endif
+  return APR_SUCCESS;
+}
+
+static void hold_ref_in_pool(apr_pool_t *pool, item_baton *baton)
+{
+  Py_XINCREF(baton->editor);
+  Py_XINCREF(baton->baton);
+  apr_pool_cleanup_register(pool, baton, svn_swig_cleanup_item_baton,
+                            apr_pool_cleanup_null);
+}
+
 static item_baton *make_baton(apr_pool_t *pool,
                               PyObject *editor,
                               PyObject *baton)
 {
   item_baton *newb = apr_palloc(pool, sizeof(*newb));
 
-  /* Note: We steal the caller's reference to 'baton'. */
-  Py_INCREF(editor);
   newb->editor = editor;
   newb->baton = baton;
   newb->pool = pool;
+
+  /* Note: hold the caller's reference in 'pool' */
+  hold_ref_in_pool(pool, newb);
 
   return newb;
 }
@@ -1828,18 +1850,6 @@ static svn_error_t *close_baton(void *baton,
 
   /* there is no return value, so just toss this object (probably Py_None) */
   Py_DECREF(result);
-
-  /* Release the editor object */
-  Py_DECREF(ib->editor);
-
-  /* We're now done with the baton. Since there isn't really a free, all
-     we need to do is note that its objects are no longer referenced by
-     the baton.  */
-  Py_XDECREF(ib->baton);
-
-#ifdef SVN_DEBUG
-  ib->editor = ib->baton = NULL;
-#endif
 
   err = SVN_NO_ERROR;
 
@@ -2269,15 +2279,6 @@ static svn_error_t *close_file(void *file_baton,
 
   /* there is no return value, so just toss this object (probably Py_None) */
   Py_DECREF(result);
-
-  /* We're now done with the baton. Since there isn't really a free, all
-     we need to do is note that its objects are no longer referenced by
-     the baton.  */
-  Py_XDECREF(ib->baton);
-
-#ifdef SVN_DEBUG
-  ib->editor = ib->baton = NULL;
-#endif
 
   err = SVN_NO_ERROR;
 
