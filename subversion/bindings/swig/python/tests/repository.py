@@ -314,10 +314,7 @@ class SubversionRepositoryTestCase(unittest.TestCase):
     del root
     self.assertNotEqual(None, editor_ref())
 
-    editor.fs_root = None  # XXX workaround for editor leaked...
     del e_ptr, e_baton, editor
-    self.assertNotEqual(None, editor_ref())
-
     del subpool
     self.assertEqual(None, editor_ref())
 
