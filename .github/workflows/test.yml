@@ -1,0 +1,348 @@
+name: test
+
+on:
+  push:
+    branches: ['**']
+
+jobs:
+
+  posix-test-python:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ['3.9', '3.8', '3.7', '3.6', '3.5', '2.7']
+
+    needs: posix-prepare
+
+    env:
+      MATRIX_OS: ${{ matrix.os }}
+      MATRIX_PYVER: ${{ matrix.python-version }}
+
+    steps:
+    - name: Set up libraries
+      uses: actions/cache@v2
+      with:
+        path: ~/svn
+        key: ${{ runner.os }}-svn-${{ github.sha }}
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Checkout py3c
+      uses: actions/checkout@v2
+      with:
+        repository: encukou/py3c
+        ref: 'v1.3.1'
+        path: py3c
+
+    - name: Build and run tests
+      run: |
+        .github/build.sh swig-py
+
+    - name: Upload log files
+      uses: actions/upload-artifact@v2
+      if: always()
+      with:
+        name: log-python-${{ matrix.python-version }}-${{ matrix.os }}
+        path: '*.log'
+
+
+  posix-test-ruby:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        ruby-version: ['3.0', '2.7', '2.6', '2.5', '2.4']
+
+    needs: posix-prepare
+
+    env:
+      MATRIX_OS: ${{ matrix.os }}
+
+    steps:
+    - name: Set up libraries
+      uses: actions/cache@v2
+      with:
+        path: ~/svn
+        key: ${{ runner.os }}-svn-${{ github.sha }}
+
+    - name: Set up Ruby ${{ matrix.ruby-version }}
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby-version }}
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build and run tests
+      run: |
+        .github/build.sh swig-rb
+
+    - name: Upload log files
+      uses: actions/upload-artifact@v2
+      if: always()
+      with:
+        name: log-ruby-${{ matrix.ruby-version }}-${{ matrix.os }}
+        path: '*.log'
+
+
+  posix-test-perl:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        perl-version: ['5.32', '5.30', '5.28', '5.26', '5.24', '5.22']
+
+    needs: posix-prepare
+
+    env:
+      MATRIX_OS: ${{ matrix.os }}
+
+    steps:
+    - name: Set up libraries
+      uses: actions/cache@v2
+      with:
+        path: ~/svn
+        key: ${{ runner.os }}-svn-${{ github.sha }}
+
+    - name: Set up Perl ${{ matrix.perl-version }}
+      uses: shogo82148/actions-setup-perl@v1
+      with:
+        perl-version: ${{ matrix.perl-version }}
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build and run tests
+      run: |
+        .github/build.sh swig-pl
+
+    - name: Upload log files
+      uses: actions/upload-artifact@v2
+      if: always()
+      with:
+        name: log-perl-${{ matrix.perl-version }}-${{ matrix.os }}
+        path: '*.log'
+
+
+  posix-test-javahl:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        java-version: ['15', '11', '8']
+
+    needs: posix-prepare
+
+    env:
+      MATRIX_OS: ${{ matrix.os }}
+
+    steps:
+    - name: Set up libraries
+      uses: actions/cache@v2
+      with:
+        path: ~/svn
+        key: ${{ runner.os }}-svn-${{ github.sha }}
+
+    - name: Set up Java ${{ matrix.java-version }}
+      uses: actions/setup-java@v2
+      with:
+        distribution: adopt
+        java-version: ${{ matrix.java-version }}
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build and run tests
+      run: |
+        .github/build.sh javahl
+
+    - name: Upload log files
+      uses: actions/upload-artifact@v2
+      if: always()
+      with:
+        name: log-javahl-${{ matrix.java-version }}-${{ matrix.os }}
+        path: '*.log'
+
+
+  posix-test-core:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    env:
+      MATRIX_OS: ${{ matrix.os }}
+
+    steps:
+    - name: Set up libraries
+      uses: actions/cache@v2
+      with:
+        path: ~/svn
+        key: ${{ runner.os }}-svn-${{ github.sha }}
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build and run tests
+      run: |
+        .github/build.sh all
+
+    - name: Upload log files
+      uses: actions/upload-artifact@v2
+      if: always()
+      with:
+        name: log-core-${{ matrix.os }}
+        path: '*.log'
+
+
+  posix-prepare:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    env:
+      MATRIX_OS: ${{ matrix.os }}
+
+    steps:
+    - name: Set up libraries
+      uses: actions/cache@v2
+      with:
+        path: ~/svn
+        key: ${{ runner.os }}-svn-${{ github.sha }}
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build and install
+      run: |
+        .github/build.sh install
+
+
+  windows-test:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        architecture: [x64]
+        python-version: ['3.9']
+        perl-version: ['5.32']
+        java-version: ['15']
+
+    needs: windows-prepare
+
+    env:
+      MATRIX_ARCH: ${{ matrix.architecture }}
+
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+    - name: Set up vcpkg cache
+      uses: actions/cache@v2
+      with:
+        path: ~\AppData\Local\vcpkg\archives
+        key: ${{ runner.os }}-${{ matrix.architecture }}-vcpkg-${{ github.sha }}
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Set up Perl ${{ matrix.perl-version }}
+      uses: shogo82148/actions-setup-perl@v1
+      with:
+        perl-version: ${{ matrix.perl-version }}
+
+    - name: Set up Java ${{ matrix.java-version }}
+      uses: actions/setup-java@v2
+      with:
+        distribution: adopt
+        java-version: ${{ matrix.java-version }}
+
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    - name: Set git to use LF
+      run: |
+        git config --global core.autocrlf false
+        git config --global core.eol lf
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Checkout py3c
+      uses: actions/checkout@v2
+      with:
+        repository: encukou/py3c
+        ref: 'v1.3.1'
+        path: py3c
+
+    - name: Build and run tests
+      run: |
+        .github\build.ps1
+
+    - name: Upload log files
+      uses: actions/upload-artifact@v2
+      if: always()
+      with:
+        name: log-${{ matrix.os }}
+        path: |
+          *.log
+          Release\*.log
+
+
+  windows-prepare:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [windows-latest]
+        architecture: [x64]
+
+    env:
+      MATRIX_ARCH: ${{ matrix.architecture }}
+
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+    - name: Set up vcpkg cache
+      uses: actions/cache@v2
+      with:
+        path: ~\AppData\Local\vcpkg\archives
+        key: ${{ runner.os }}-${{ matrix.architecture }}-vcpkg-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-${{ matrix.architecture }}-vcpkg-${{ github.sha }}
+          ${{ runner.os }}-${{ matrix.architecture }}-vcpkg-
+
+    - name: Install dependencies
+      run: |
+        $arch = $env:MATRIX_ARCH
+        $vcpkg_root = 'C:\vcpkg'
+        $vcpkg_triplet = "$arch-windows"
+        $vcpkg_dir = "$vcpkg_root\installed\$vcpkg_triplet"
+        & vcpkg install "--triplet=$vcpkg_triplet" apr apr-util zlib gettext
