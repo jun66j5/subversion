@@ -1865,7 +1865,6 @@ close_baton(void *baton, const char *method, svn_boolean_t without_item)
     }
   if (without_item)
     {
-      /* A baton has attribute "_dec" is a instance of _AncBaton */
       baton_item = NULL;
     }
   /* If there is no baton object, then it is an edit_baton, and we should
