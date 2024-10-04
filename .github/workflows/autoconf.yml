@@ -71,10 +71,10 @@ jobs:
         run: ./configure --enable-maintainer-mode
 
       - name: Build (make)
-        run: make -j
+        run: make -j"$(nproc)"
 
       - name: Run tests (make check)
-        run: make check
+        run: make check PARALLEL="$(nproc)"
 
       - name: Install (make install)
         run: sudo make install
