@@ -57,7 +57,9 @@ typedef  int gid_t;
 #if !defined(__cplusplus) && !defined(inline)
 #define inline __inline
 #endif
+#ifndef HAVE_SSIZE_T
 typedef long ssize_t;
+#endif
 
 /* Don't define iovec when including APR */
 #define APR_IOVEC_DEFINED
