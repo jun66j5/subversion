@@ -163,20 +163,28 @@ static PyObject * _global_py_pool = NULL;
     SWIG_fail;
   }
 }
-%apply long { short, int, ssize_t, enum SWIGTYPE, svn_boolean_t,
+%apply long { short, int, enum SWIGTYPE, svn_boolean_t,
               apr_seek_where_t, apr_fileperms_t }
-%apply unsigned long { unsigned char, unsigned short, unsigned int, size_t }
+%apply unsigned long { unsigned char, unsigned short, unsigned int }
 
 %clear long long;
 %clear unsigned long long;
 
 /* These typemaps use apr_int64_t so that they will work on Win32 and Unix */
 %typemap (in) long long
-  " $1 = ($1_ltype) PyLong_AsLongLong($input); ";
-
+{
+  /* $1_name: $1_type */
+  $1 = ($1_ltype) PyLong_AsLongLong($input);
+  if (SWIG_arg_fail($svn_argnum))
+    SWIG_fail;
+}
 %typemap (in) unsigned long long
-  " $1 = ($1_ltype) PyLong_AsUnsignedLongLong($input); ";
-
+{
+  /* $1_name: $1_type */
+  $1 = ($1_ltype) PyLong_AsUnsignedLongLong($input);
+  if (SWIG_arg_fail($svn_argnum))
+    SWIG_fail;
+}
 %typemap (out) apr_time_t, apr_int64_t, long long, __int64
   " $result = PyLong_FromLongLong((apr_int64_t)($1)); ";
 
@@ -189,8 +197,71 @@ static PyObject * _global_py_pool = NULL;
   %append_output(PyLong_FromLongLong(*$1));
 }
 
-#endif
+/* Platform dependent integers */
+%typemap(in) ssize_t
+{
+  /* $1_name: $1_type */
+  $1 = PyInt_AsSsize_t($input);
+  if (SWIG_arg_fail($svn_argnum))
+    SWIG_fail;
+}
+%typemap(in) size_t
+{
+  /* $1_name: $1_type */
+%#if PY_MAJOR_VERSION != 2
+  $1 = PyLong_AsSize_t($input);
+  if (SWIG_arg_fail($svn_argnum))
+    SWIG_fail;
+%#else
+  int res = SWIG_AsVal_size_t($input, &$1);
+  if (!SWIG_IsOK(res)) {
+    $1 = 0;
+    SWIG_Error(res, "");
+    SWIG_arg_fail($svn_argnum);
+    SWIG_fail;
+  }
+%#endif
+}
+%typemap(out) ssize_t
+{
+  $result = PyInt_FromSsize_t($1); /* $1_name: $1_type */
+}
+%typemap(out) size_t
+{
+  $result = PyInt_FromSize_t($1); /* $1_name: $1_type */
+}
+#endif /* SWIGPYTHON */
 
+#ifdef SWIGPERL
+/* Platform dependent integers */
+%typemap(in) ssize_t
+{
+  /* $1_name: $1_type */
+  if (sizeof (ssize_t) <= sizeof (long)) {
+    $typemap(in, long);
+  }
+%#ifdef SWIG_LONG_LONG_AVAILABLE
+  else if (sizeof (ssize_t) <= sizeof (long long)) {
+    $typemap(in, long long);
+  }
+%#endif
+  else {
+    return SWIG_TypeError;
+  }
+}
+%typemap(out) ssize_t
+{
+  /* $1_name: $1_type */
+  if (sizeof (ssize_t) <= sizeof (long)) {
+    $typemap(out, long);
+  }
+%#ifdef SWIG_LONG_LONG_AVAILABLE
+  else if (sizeof (ssize_t) <= sizeof (long long)) {
+    $typemap(out, long long);
+  }
+%#endif
+}
+#endif /* SWIGPERL */
 
 #ifdef SWIGRUBY
 %clear long long;
@@ -227,7 +298,35 @@ static PyObject * _global_py_pool = NULL;
   %append_output(ULL2NUM(*$1));
 }
 
+/* Platform dependent integers */
+%{
+#if SIZEOF_VOIDP == SIZEOF_LONG
+# define SVN_NUM_TO_SIZE_T(v) NUM2ULONG(v)
+# define SVN_SIZE_T_TO_NUM(v) ULONG2NUM(v)
+#elif SIZEOF_VOIDP == SIZEOF_LONG_LONG
+# define SVN_NUM_TO_SIZE_T(v) NUM2ULL(v)
+# define SVN_SIZE_T_TO_NUM(v) ULL2NUM(v)
+#else
+# error
 #endif
+%}
+%typemap(in) ssize_t
+{
+  $1 = NUM2SWIG($input); /* $1_name: $1_type */
+}
+%typemap(in) size_t
+{
+  $1 = SVN_NUM_TO_SIZE_T($input); /* $1_name: $1_type */
+}
+%typemap(out) ssize_t
+{
+  $result = SWIG2NUM($1); /* $1_name: $1_type */
+}
+%typemap(out) size_t
+{
+  $result = SVN_SIZE_T_TO_NUM($1); /* $1_name: $1_type */
+}
+#endif /* SWIGRUBY */
 
 
 #ifdef SWIGRUBY

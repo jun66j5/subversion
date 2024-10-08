@@ -64,15 +64,19 @@
  */
 
 /* Integers for which sizeof(type) <= sizeof(long) */
-%apply long { apr_int16_t, apr_int32_t, apr_ssize_t }
-%apply unsigned long { apr_byte_t, apr_uint16_t, apr_uint32_t, apr_size_t }
-%apply unsigned long *OUTPUT { apr_uint32_t *, apr_size_t * }
+%apply long { apr_int16_t, apr_int32_t }
+%apply unsigned long { apr_byte_t, apr_uint16_t, apr_uint32_t }
+%apply unsigned long *OUTPUT { apr_uint32_t * }
 
 /* If sizeof(apr_off_t) > sizeof(apr_int64_t), apr_off_t will get truncated
  * to a 64-bit integer */
 %apply long long { apr_off_t, apr_int64_t }
 %apply long long *OUTPUT { apr_int64_t * };
 %apply unsigned long long { apr_uint64_t }
+
+/* Platform dependent integers */
+%apply ssize_t { apr_ssize_t }
+%apply size_t { apr_size_t }
 
 /* -----------------------------------------------------------------------
    apr_time_t
