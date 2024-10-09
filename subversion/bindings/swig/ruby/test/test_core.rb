@@ -875,6 +875,18 @@ EOM
     assert_not_equal(mergerange1, mergerange4)
   end
 
+  def test_apr_size_t
+    max_uint = [nil].pack('P').gsub("\x00", "\xff").unpack('J')[0]
+    assert_equal(false, Svn::Core::dirent_is_root('a', 0))
+    assert_equal(false, Svn::Core::dirent_is_root('a', 1))
+    assert_equal(false, Svn::Core::dirent_is_root('a', max_uint))
+    assert_raise(TypeError) { Svn::Core::dirent_is_root('a', nil) }
+    # XXX Svn::Core::dirent_is_root('a', -1)  # expect RangeError but false
+    assert_raise(RangeError) do
+      Svn::Core::dirent_is_root('a', max_uint + 1)
+    end
+  end
+
   private
   def used_pool
     pool = Svn::Core::Pool.new

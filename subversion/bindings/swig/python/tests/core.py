@@ -348,6 +348,16 @@ class SubversionCoreTestCase(unittest.TestCase):
     finally:
       svn.core.svn_stream_close(stream)
 
+  def test_apr_size_t(self):
+    svn_dirent_is_root = svn.core.svn_dirent_is_root
+    self.assertFalse(svn_dirent_is_root('a', 0))
+    self.assertFalse(svn_dirent_is_root('a', 1))
+    self.assertFalse(svn_dirent_is_root('a', sys.maxsize))
+    self.assertFalse(svn_dirent_is_root('a', sys.maxsize * 2 + 1))
+    self.assertRaises(OverflowError, svn_dirent_is_root, 'a', -1)
+    self.assertRaises(OverflowError,
+                      svn_dirent_is_root, 'a', (sys.maxsize + 1) * 2)
+
 
 def suite():
     return unittest.defaultTestLoader.loadTestsFromTestCase(
