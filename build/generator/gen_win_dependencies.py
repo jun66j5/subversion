@@ -1029,8 +1029,8 @@ class GenDependenciesBase(gen_base.GeneratorBase):
     else:
       defines = []
 
-    ver = ruby_version.split('.')
-    ver = tuple(map(int, ver))
+    match = re.match(r'([0-9]+(?:\.[0-9]+)+)(?:\+[0-9]+)?\Z', ruby_version)
+    ver = tuple(map(int, match.group(1).split('.')))
     if ver >= (1, 8, 0):
       defines.extend(["HAVE_RB_ERRINFO"])
 

@@ -230,7 +230,9 @@ class SvnFsTest < Test::Unit::TestCase
     # decimal places), but the time from Subversion has 6
     # decimal places so it looks like it's not in the range.
     # So we just add a smidgen to the end of the Range.
-    assert_operator(start_time..(Time.now + 0.001), :include?, date)
+    margin = Svn::Util::windows? ? 16r / 1000 : 0
+    assert_operator((start_time - margin * 2)..(Time.now + margin * 2),
+                    :include?, date)
     txn1.set_prop(Svn::Core::PROP_REVISION_DATE, nil)
     assert_equal([], txn1.proplist.keys)
     assert_equal(youngest_rev, txn1.base_revision)
