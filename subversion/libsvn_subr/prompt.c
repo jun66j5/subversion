@@ -39,6 +39,7 @@
 #include "svn_path.h"
 
 #include "private/svn_cmdline_private.h"
+#include "private/svn_utf_private.h"
 #include "svn_private_config.h"
 
 #ifdef WIN32
@@ -238,21 +239,24 @@ terminal_puts(const char *string, terminal_handle_t *terminal,
   svn_error_t *err;
   const char *converted;
 
+#ifdef WIN32
+  if (!terminal->outfd)
+    {
+      /* See terminal_open; we're using Console I/O. */
+      WCHAR *result;
+      SVN_ERR(svn_utf__win32_utf8_to_utf16(&result, string, NULL, pool));
+      if (_cputws(result) && apr_get_os_error())
+        return svn_error_wrap_apr(apr_get_os_error(), _("Write error"));
+      return SVN_NO_ERROR;
+    }
+#endif
+
   err = svn_cmdline_cstring_from_utf8(&converted, string, pool);
   if (err)
     {
       svn_error_clear(err);
       converted = svn_cmdline_cstring_from_utf8_fuzzy(string, pool);
     }
-
-#ifdef WIN32
-  if (!terminal->outfd)
-    {
-      /* See terminal_open; we're using Console I/O. */
-      _cputs(converted);
-      return SVN_NO_ERROR;
-    }
-#endif
 
   SVN_ERR(svn_io_file_write_full(terminal->outfd, converted,
                                  strlen(converted), NULL, pool));
