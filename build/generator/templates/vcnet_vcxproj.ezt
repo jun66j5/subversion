@@ -96,7 +96,7 @@
 [is configs.name "Debug"]      <IgnoreSpecificDefaultLibraries>msvcrt.lib</IgnoreSpecificDefaultLibraries>
 [end]    </Lib>
 [end][end][end][is config_type "Application"]    <Manifest>
-      <AdditionalManifestFiles>..\compatibility.manifest</AdditionalManifestFiles>
+      <AdditionalManifestFiles>..\compatibility.manifest;..\activecodepage-utf8.manifest</AdditionalManifestFiles>
     </Manifest>
 [end]  </ItemDefinitionGroup>
 [end][end][if-any target.desc]  <ItemGroup>
