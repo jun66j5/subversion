@@ -74,6 +74,7 @@ jobs:
           libsecret-1-dev
           python3-lxml
           python3-rnc2rng
+          gdb
 
       - name: Install dependencies (macOS, homebrew)
         if: runner.os == 'macOS'
@@ -165,11 +166,52 @@ jobs:
       - name: Build (make)
         run: make -j4
 
+      - name: Enable core dumps (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          test -d /cores || sudo mkdir -m 0777 /cores
+          sudo sysctl -w 'kernel.core_pattern=/cores/%t.%e.%p.%h'
+
+      - name: Delete old diagnostic reports (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          rm -f ~/Library/Logs/DiagnosticReports/*.ips
+
       - name: Run tests
         run: |
+          ulimit -c unlimited
           make ${{matrix.check-target}} PARALLEL=6 \
               APACHE_MPM="${{ steps.platform.outputs.apache-mpm }}" \
               PYTHON_VENV="$HOME/test-python-venv"
+
+      - name: Print backtrace of core dumps (Linux)
+        if: always() && runner.os == 'Linux'
+        run: |
+          for core in /cores/*; do
+            test -r "$core" || continue
+            # Workaround for gdb losing the executable file name
+            execfn="$(gdb -q -c "$core" -ex 'info auxv' -ex quit | \
+                      sed -n '/AT_EXECFN/ { s/.*"\([^"]*\)".*/\1/; p; q }')"
+            test -n "$execfn" -a -e "$execfn" || execfn=-c
+            echo "::group::$core"
+            gdb -q "$execfn" "$core" \
+                -ex 'set pagination off' \
+                -ex 'info proc mappings' \
+                -ex 'thread apply all bt full' \
+                -ex 'quit'
+            echo '::endgroup::'
+          done
+
+      - name: Print diagnostic reports (macOS)
+        if: always() && runner.os == 'macOS'
+        shell: bash
+        run: |
+          for ips in ~/Library/Logs/DiagnosticReports/*.ips; do
+            test -r "$ips" || continue
+            echo "::group::$ips"
+            viewdiagnostic "$ips" || :
+            echo '::endgroup::'
+          done
 
       - name: Archive test logs
         if: always()

@@ -211,22 +211,74 @@ jobs:
       - name: Install
         run: cmake --install out --config Release
 
+      - name: Enable core dumps (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          test -d /cores || sudo mkdir -m 0777 /cores
+          sudo sysctl -w 'kernel.core_pattern=/cores/%t.%e.%p.%h'
+
+      - name: Delete old diagnostic reports (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          rm -f ~/Library/Logs/DiagnosticReports/*.ips
+
       - name: Run all tests
         id: run_all_tests
         if: matrix.run_tests
         working-directory: out
-        run: ctest --output-on-failure --verbose -C Release --parallel 16
+        shell: bash
+        run: |
+          ulimit -c unlimited
+          ctest --output-on-failure --verbose -C Release --parallel 16
 
       - name: Test shelf2
         if: matrix.run_tests
         working-directory: out
         env:
           SVN_EXPERIMENTAL_COMMANDS: shelf2
-        run: ctest -R shelf2 --verbose -C Release
+        shell: bash
+        run: |
+          ulimit -c unlimited
+          ctest -R shelf2 --verbose -C Release
 
       - name: Test shelf3
         if: matrix.run_tests
         working-directory: out
         env:
           SVN_EXPERIMENTAL_COMMANDS: shelf3
-        run: ctest -R shelf3 --verbose -C Release
+        shell: bash
+        run: |
+          ulimit -c unlimited
+          ctest -R shelf3 --verbose -C Release
+
+      - name: Print backtrace of core dumps (Linux)
+        if: always() && runner.os == 'Linux'
+        shell: bash
+        run: |
+          for core in /cores/*; do
+            test -r "$core" || continue
+            # Workaround for gdb losing the executable file name
+            execfn="$(gdb -q -c "$core" -ex 'info auxv' -ex quit | \
+                      sed -n '/AT_EXECFN/ { s/.*"\([^"]*\)".*/\1/; p; q }')"
+            test -n "$execfn" -a -e "$execfn" || execfn=-c
+            echo "::group::$core"
+            gdb -q "$execfn" "$core" \
+                -ex 'set pagination off' \
+                -ex 'info proc mappings' \
+                -ex 'thread apply all bt full' \
+                -ex 'quit'
+            echo '::endgroup::'
+          done
+
+      - name: Print diagnostic reports (macOS)
+        if: always() && runner.os == 'macOS'
+        shell: bash
+        run: |
+          for ips in ~/Library/Logs/DiagnosticReports/*.ips; do
+            test -r "$ips" || continue
+            echo "::group::$ips"
+            viewdiagnostic "$ips" || :
+            echo '::endgroup::'
+          done
