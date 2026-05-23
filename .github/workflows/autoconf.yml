@@ -36,7 +36,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        check-target: [check, davautocheck]
+        check-target: [davautocheck]
         os: [ubuntu-latest, ubuntu-22.04-arm, macos-latest]
         httpd: [system, trunk, 2.4.x]
         # Only run davautocheck for httpd trunk/2.4.x
@@ -180,9 +180,16 @@ jobs:
       - name: Run tests
         run: |
           ulimit -c unlimited
-          make ${{matrix.check-target}} PARALLEL=6 \
-              APACHE_MPM="${{ steps.platform.outputs.apache-mpm }}" \
-              PYTHON_VENV="$HOME/test-python-venv"
+          t=
+          for i in $(seq 1 64); do
+            t="$t subversion/tests/libsvn_ra/ra-test"
+          done
+          for i in $(seq 1 128); do
+            make ${{matrix.check-target}} PARALLEL=6 \
+                TESTS="$t" \
+                APACHE_MPM="${{ steps.platform.outputs.apache-mpm }}" \
+                PYTHON_VENV="$HOME/test-python-venv"
+          done
 
       - name: Print backtrace of core dumps (Linux)
         if: always() && runner.os == 'Linux'
