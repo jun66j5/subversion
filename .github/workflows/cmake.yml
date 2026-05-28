@@ -107,41 +107,71 @@ jobs:
 
           ls env: | foreach { "$($_.Name)=$($_.Value)" >> $env:GITHUB_ENV }
 
-      - name: Get vcpkg sha (Windows, vcpkg)
+      - name: Prepare vcpkg (Windows, vcpkg)
         if: runner.os == 'Windows'
-        id: vcpkg-sha
+        id: vcpkg
         run: |
-          cd C:\vcpkg
-          $sha = git rev-parse HEAD
-          echo "sha=$sha" >> $env:GITHUB_OUTPUT
+          $pkgs = 'apr apr-util serf expat zlib sqlite3 gettext[tools] pdcurses'
+          $pkgs = $pkgs -Split '\s+' | `
+            Where-Object { $_.Length -gt 0 } | `
+            Sort-Object | `
+            Join-String -Separator ' '
 
-      - name: Restore vcpkg archives (Windows, vcpkg)
+          $sha = git --git-dir C:\vcpkg\.git rev-parse HEAD
+
+          $bytes = [System.Text.Encoding]::UTF8.GetBytes($pkgs)
+          $hash = [System.Security.Cryptography.SHA256]::Create().ComputeHash($bytes)
+          $hash = $hash | % { $_.ToString('x2') } | Join-String -Separator ''
+
+          $prefix = "vcpkg/${env:RUNNER_OS}/${{ matrix.vcpkg_triplet }}"
+
+          @"
+          pkgs=$pkgs
+          path<<__EOS__
+          vcpkg-archives
+          vcpkg-downloads/cmake-*.zip
+          vcpkg-downloads/7z*.exe
+          vcpkg-downloads/tools/7zr-*
+          vcpkg-downloads/PowerShell-*.zip
+          __EOS__
+          key=$prefix/$sha/$hash
+          restore-keys<<__EOS__
+          $prefix/$sha/
+          $prefix/
+          __EOS__
+          "@ >> $env:GITHUB_OUTPUT
+
+      - name: Restore vcpkg files (Windows, vcpkg)
+        id: vcpkg-cache
         if: runner.os == 'Windows'
         uses: actions/cache/restore@v5
         with:
-          path: vcpkg-archives
-          key: vcpkg/${{ runner.os }}/${{ matrix.vcpkg_triplet }}/${{ steps.vcpkg-sha.outputs.sha }}
-          restore-keys: vcpkg/${{ runner.os }}/${{ matrix.vcpkg_triplet }}/
+          path: ${{ steps.vcpkg.outputs.path }}
+          key: ${{ steps.vcpkg.outputs.key }}
+          restore-keys: ${{ steps.vcpkg.outputs.restore-keys }}
 
       - name: Install dependencies (Windows, vcpkg)
         if: runner.os == 'Windows'
         env:
           VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}\vcpkg-archives
+          VCPKG_DOWNLOADS: ${{ github.workspace }}\vcpkg-downloads
         run: |
-          if (-not (Test-Path $env:VCPKG_DEFAULT_BINARY_CACHE)) {
-            New-Item $env:VCPKG_DEFAULT_BINARY_CACHE -ItemType Directory | Out-Null
+          foreach ($dir in $env:VCPKG_DEFAULT_BINARY_CACHE, $env:VCPKG_DOWNLOADS) {
+            if (-not (Test-Path $dir)) {
+              New-Item $dir -ItemType Directory | Out-Null
+            }
           }
           C:\vcpkg\vcpkg.exe install --triplet ${{ matrix.vcpkg_triplet }} `
-            apr apr-util serf expat zlib sqlite3 gettext[tools] pdcurses
+            ${{ steps.vcpkg.outputs.pkgs }}
 
           "CMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake" >> $env:GITHUB_ENV
 
-      - name: Save vcpkg archives (Windows, vcpkg)
-        if: runner.os == 'Windows'
+      - name: Save vcpkg files (Windows, vcpkg)
+        if: runner.os == 'Windows' && steps.vcpkg-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v5
         with:
-          path: vcpkg-archives
-          key: vcpkg/${{ runner.os }}/${{ matrix.vcpkg_triplet }}/${{ steps.vcpkg-sha.outputs.sha }}
+          path: ${{ steps.vcpkg.outputs.path }}
+          key: ${{ steps.vcpkg.outputs.key }}
 
       - name: Install dependencies (Windows, python)
         if: runner.os == 'Windows'
